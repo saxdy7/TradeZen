@@ -7,8 +7,9 @@ import { usePortfolio } from '@/hooks/usePortfolio';
 import { fetchBinancePrice, MAIN_SYMBOLS, COIN_NAMES, COIN_ICONS } from '@/lib/binance';
 import PriceCard from '@/components/crypto/PriceCard';
 import TradingChart from '@/components/charts/TradingChart';
-import { Activity, TrendingUp, TrendingDown, Wallet, Globe2, BarChart3, Bitcoin, DollarSign, Coins } from 'lucide-react';
+import { Activity, TrendingUp, TrendingDown, Wallet, Globe2, BarChart3, Bitcoin, DollarSign, Coins, Newspaper } from 'lucide-react';
 import type { PortfolioHolding } from '@/types';
+import CryptoNews from '@/components/crypto/CryptoNews';
 
 export default function DashboardPage() {
   // Shared context — single WebSocket for all 20 coins
@@ -59,7 +60,7 @@ export default function DashboardPage() {
     enrich();
   }, [holdings, tickers]);
 
-  // Use ALL 20 tracked coins for Gainers & Losers (not just 4)
+  // Use ALL 50 tracked coins for Gainers & Losers
   const allTickers = Object.values(tickers)
     .map((t) => ({
       symbol: t.symbol,
@@ -343,6 +344,9 @@ export default function DashboardPage() {
           </motion.div>
         </div>
       </div>
+
+      {/* News Feed */}
+      <CryptoNews maxItems={8} />
     </div>
   );
 }

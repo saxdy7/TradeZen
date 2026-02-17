@@ -1,20 +1,23 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCrypto } from '@/contexts/CryptoContext';
 import CoinList from '@/components/crypto/CoinList';
 import TradingChart from '@/components/charts/TradingChart';
 import OrderBook from '@/components/trading/OrderBook';
 import RecentTradesPanel from '@/components/trading/RecentTrades';
-import { X, BookOpen, Clock, ChevronDown } from 'lucide-react';
+import DepthChart from '@/components/trading/DepthChart';
+import { X, BookOpen, Clock, ChevronDown, BarChart3, ExternalLink } from 'lucide-react';
 
-type TradingTab = 'orderbook' | 'trades';
+type TradingTab = 'orderbook' | 'trades' | 'depth';
 
 export default function MarketPage() {
   const { tickers, isConnected, coinMarketData } = useCrypto();
   const [selectedCoin, setSelectedCoin] = useState<string | null>(null);
   const [tradingTab, setTradingTab] = useState<TradingTab>('orderbook');
+  const router = useRouter();
 
   const selectedSymbol = selectedCoin?.toUpperCase() || '';
 
@@ -27,7 +30,7 @@ export default function MarketPage() {
             Market
           </h1>
           <p className="text-xs lg:text-sm text-[#8888AA] mt-1">
-            Top 20 cryptocurrencies by volume
+            Top 50 cryptocurrencies by volume
           </p>
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#12121A] border border-white/5">
@@ -55,13 +58,22 @@ export default function MarketPage() {
                   {selectedSymbol.replace('USDT', '')}/USDT Trading View
                 </h2>
               </div>
-              <button
-                onClick={() => setSelectedCoin(null)}
-                className="flex items-center gap-1 px-2 py-1 text-xs text-[#8888AA] hover:text-white rounded-md hover:bg-white/5 transition-colors cursor-pointer"
-              >
-                <X className="w-3 h-3" />
-                Close
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => router.push(`/coin/${selectedSymbol}`)}
+                  className="flex items-center gap-1 px-2 py-1 text-xs text-[#00D4FF] hover:text-white rounded-md hover:bg-white/5 transition-colors cursor-pointer"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  Full Details
+                </button>
+                <button
+                  onClick={() => setSelectedCoin(null)}
+                  className="flex items-center gap-1 px-2 py-1 text-xs text-[#8888AA] hover:text-white rounded-md hover:bg-white/5 transition-colors cursor-pointer"
+                >
+                  <X className="w-3 h-3" />
+                  Close
+                </button>
+              </div>
             </div>
 
             {/* Desktop: Chart left + Order Book / Recent Trades right */}
@@ -73,7 +85,7 @@ export default function MarketPage() {
 
               {/* Side panel (1/3 on desktop, tabs on mobile) */}
               <div className="space-y-0">
-                {/* Tab toggle for mobile & desktop */}
+                {/* Tab toggle */}
                 <div className="flex bg-[#12121A] rounded-t-xl border border-b-0 border-white/5">
                   <button
                     onClick={() => setTradingTab('orderbook')}
@@ -84,11 +96,11 @@ export default function MarketPage() {
                     }`}
                   >
                     <BookOpen className="w-3 h-3" />
-                    Order Book
+                    Book
                   </button>
                   <button
                     onClick={() => setTradingTab('trades')}
-                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-medium transition-colors cursor-pointer rounded-tr-xl ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-medium transition-colors cursor-pointer ${
                       tradingTab === 'trades'
                         ? 'text-[#00D4FF] bg-[#00D4FF]/5 border-b-2 border-[#00D4FF]'
                         : 'text-[#8888AA] hover:text-white'
@@ -97,14 +109,27 @@ export default function MarketPage() {
                     <Clock className="w-3 h-3" />
                     Trades
                   </button>
+                  <button
+                    onClick={() => setTradingTab('depth')}
+                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-medium transition-colors cursor-pointer rounded-tr-xl ${
+                      tradingTab === 'depth'
+                        ? 'text-[#FFD93D] bg-[#FFD93D]/5 border-b-2 border-[#FFD93D]'
+                        : 'text-[#8888AA] hover:text-white'
+                    }`}
+                  >
+                    <BarChart3 className="w-3 h-3" />
+                    Depth
+                  </button>
                 </div>
 
                 {/* Panel content */}
                 <div>
                   {tradingTab === 'orderbook' ? (
                     <OrderBook symbol={selectedSymbol} />
-                  ) : (
+                  ) : tradingTab === 'trades' ? (
                     <RecentTradesPanel symbol={selectedSymbol} />
+                  ) : (
+                    <DepthChart symbol={selectedSymbol} />
                   )}
                 </div>
               </div>

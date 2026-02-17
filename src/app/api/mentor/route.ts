@@ -3,7 +3,7 @@ import { groq, SYSTEM_PROMPT } from '@/lib/groq';
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages } = await req.json();
+    const { messages, marketContext } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: 'Messages array is required' }), {
@@ -12,10 +12,15 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Inject live market context into system prompt
+    const systemPrompt = marketContext
+      ? SYSTEM_PROMPT + '\n\n' + marketContext + '\nUse this live data to provide current, relevant market analysis when users ask about prices, trends, or which coins to watch.'
+      : SYSTEM_PROMPT;
+
     const response = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: systemPrompt },
         ...messages.slice(-20), // Keep last 20 messages for context
       ],
       stream: true,

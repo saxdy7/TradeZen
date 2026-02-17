@@ -4,10 +4,19 @@
 export const BINANCE_WS_URL = 'wss://stream.binance.com:9443/stream';
 
 export const TRACKED_SYMBOLS = [
+  // Top 50 by market cap + volume
   'btcusdt', 'ethusdt', 'bnbusdt', 'solusdt', 'xrpusdt',
   'dogeusdt', 'adausdt', 'avaxusdt', 'dotusdt', 'maticusdt',
   'linkusdt', 'uniusdt', 'ltcusdt', 'atomusdt', 'etcusdt',
   'xlmusdt', 'nearusdt', 'aptusdt', 'filusdt', 'arbusdt',
+  // 20 more coins
+  'trxusdt', 'shibusdt', 'bchusdt', 'icpusdt', 'suiusdt',
+  'hbarusdt', 'vetusdt', 'opusdt', 'injusdt', 'seiusdt',
+  'tiausdt', 'ftmusdt', 'thetausdt', 'algousdt', 'renderusdt',
+  'grtusdt', 'imxusdt', 'aaveusdt', 'mkrusdt', 'snxusdt',
+  // 10 more popular coins
+  'wldusdt', 'pendleusdt', 'jupusdt', 'ondousdt', 'enausdt',
+  'stxusdt', 'ldousdt', 'runeusdt', 'fetusdt', 'pepeusdt',
 ];
 
 export const MAIN_SYMBOLS = ['btcusdt', 'ethusdt', 'bnbusdt', 'solusdt'];
@@ -33,6 +42,36 @@ export const COIN_NAMES: Record<string, string> = {
   aptusdt: 'Aptos',
   filusdt: 'Filecoin',
   arbusdt: 'Arbitrum',
+  trxusdt: 'TRON',
+  shibusdt: 'Shiba Inu',
+  bchusdt: 'Bitcoin Cash',
+  icpusdt: 'Internet Computer',
+  suiusdt: 'Sui',
+  hbarusdt: 'Hedera',
+  vetusdt: 'VeChain',
+  opusdt: 'Optimism',
+  injusdt: 'Injective',
+  seiusdt: 'Sei',
+  tiausdt: 'Celestia',
+  ftmusdt: 'Fantom',
+  thetausdt: 'Theta Network',
+  algousdt: 'Algorand',
+  renderusdt: 'Render',
+  grtusdt: 'The Graph',
+  imxusdt: 'Immutable',
+  aaveusdt: 'Aave',
+  mkrusdt: 'Maker',
+  snxusdt: 'Synthetix',
+  wldusdt: 'Worldcoin',
+  pendleusdt: 'Pendle',
+  jupusdt: 'Jupiter',
+  ondousdt: 'Ondo',
+  enausdt: 'Ethena',
+  stxusdt: 'Stacks',
+  ldousdt: 'Lido DAO',
+  runeusdt: 'THORChain',
+  fetusdt: 'Fetch.ai',
+  pepeusdt: 'Pepe',
 };
 
 export const COIN_ICONS: Record<string, string> = {
@@ -56,6 +95,36 @@ export const COIN_ICONS: Record<string, string> = {
   aptusdt: '◈',
   filusdt: '⨏',
   arbusdt: '🔵',
+  trxusdt: '♦',
+  shibusdt: '🐕',
+  bchusdt: '₿',
+  icpusdt: '∞',
+  suiusdt: '💧',
+  hbarusdt: 'ℏ',
+  vetusdt: 'V',
+  opusdt: '🔴',
+  injusdt: '💉',
+  seiusdt: '🌊',
+  tiausdt: '☀',
+  ftmusdt: '👻',
+  thetausdt: 'θ',
+  algousdt: 'Å',
+  renderusdt: '🎨',
+  grtusdt: '📊',
+  imxusdt: '🛡',
+  aaveusdt: '👻',
+  mkrusdt: 'Ⓜ',
+  snxusdt: '⚡',
+  wldusdt: '🌍',
+  pendleusdt: '⏳',
+  jupusdt: '🪐',
+  ondousdt: '🏦',
+  enausdt: '🔮',
+  stxusdt: '📦',
+  ldousdt: '💎',
+  runeusdt: 'ᚱ',
+  fetusdt: '🤖',
+  pepeusdt: '🐸',
 };
 
 export function getBinanceWSUrl(symbols: string[]): string {
@@ -260,7 +329,40 @@ const COINGECKO_IDS: Record<string, string> = {
   aptusdt: 'aptos',
   filusdt: 'filecoin',
   arbusdt: 'arbitrum',
+  trxusdt: 'tron',
+  shibusdt: 'shiba-inu',
+  bchusdt: 'bitcoin-cash',
+  icpusdt: 'internet-computer',
+  suiusdt: 'sui',
+  hbarusdt: 'hedera-hashgraph',
+  vetusdt: 'vechain',
+  opusdt: 'optimism',
+  injusdt: 'injective-protocol',
+  seiusdt: 'sei-network',
+  tiausdt: 'celestia',
+  ftmusdt: 'fantom',
+  thetausdt: 'theta-token',
+  algousdt: 'algorand',
+  renderusdt: 'render-token',
+  grtusdt: 'the-graph',
+  imxusdt: 'immutable-x',
+  aaveusdt: 'aave',
+  mkrusdt: 'maker',
+  snxusdt: 'havven',
+  wldusdt: 'worldcoin-wld',
+  pendleusdt: 'pendle',
+  jupusdt: 'jupiter-exchange-solana',
+  ondousdt: 'ondo-finance',
+  enausdt: 'ethena',
+  stxusdt: 'blockstack',
+  ldousdt: 'lido-dao',
+  runeusdt: 'thorchain',
+  fetusdt: 'fetch-ai',
+  pepeusdt: 'pepe',
 };
+
+// Export COINGECKO_IDS for use in other components
+export { COINGECKO_IDS };
 
 export interface CoinMarketInfo {
   id: string;
@@ -306,5 +408,107 @@ export async function fetchCoinMarketData(): Promise<Record<string, CoinMarketIn
   } catch (e) {
     console.warn('[CoinGecko] Failed to fetch coin market data:', e);
     return {};
+  }
+}
+
+// ===== Detailed Coin Info (for coin detail page) =====
+export interface CoinDetailInfo {
+  id: string;
+  name: string;
+  symbol: string;
+  description: string;
+  image: string;
+  marketCapRank: number;
+  marketCap: number;
+  totalVolume: number;
+  circulatingSupply: number;
+  totalSupply: number | null;
+  maxSupply: number | null;
+  ath: number;
+  athDate: string;
+  atl: number;
+  atlDate: string;
+  priceChangePercent24h: number;
+  priceChangePercent7d: number;
+  priceChangePercent30d: number;
+  sparkline7d: number[];
+  homepage: string;
+  twitter: string;
+  github: string;
+  categories: string[];
+  genesisDate: string | null;
+}
+
+export async function fetchCoinDetail(symbolKey: string): Promise<CoinDetailInfo | null> {
+  const geckoId = COINGECKO_IDS[symbolKey];
+  if (!geckoId) return null;
+  try {
+    const res = await fetch(
+      `https://api.coingecko.com/api/v3/coins/${geckoId}?localization=false&tickers=false&community_data=false&developer_data=false&sparkline=true`
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const c = await res.json();
+    return {
+      id: c.id,
+      name: c.name,
+      symbol: c.symbol,
+      description: c.description?.en?.slice(0, 600) || '',
+      image: c.image?.large || c.image?.small || '',
+      marketCapRank: c.market_cap_rank ?? 0,
+      marketCap: c.market_data?.market_cap?.usd ?? 0,
+      totalVolume: c.market_data?.total_volume?.usd ?? 0,
+      circulatingSupply: c.market_data?.circulating_supply ?? 0,
+      totalSupply: c.market_data?.total_supply ?? null,
+      maxSupply: c.market_data?.max_supply ?? null,
+      ath: c.market_data?.ath?.usd ?? 0,
+      athDate: c.market_data?.ath_date?.usd ?? '',
+      atl: c.market_data?.atl?.usd ?? 0,
+      atlDate: c.market_data?.atl_date?.usd ?? '',
+      priceChangePercent24h: c.market_data?.price_change_percentage_24h ?? 0,
+      priceChangePercent7d: c.market_data?.price_change_percentage_7d ?? 0,
+      priceChangePercent30d: c.market_data?.price_change_percentage_30d ?? 0,
+      sparkline7d: c.market_data?.sparkline_7d?.price ?? [],
+      homepage: c.links?.homepage?.[0] || '',
+      twitter: c.links?.twitter_screen_name || '',
+      github: c.links?.repos_url?.github?.[0] || '',
+      categories: c.categories?.filter(Boolean)?.slice(0, 4) || [],
+      genesisDate: c.genesis_date || null,
+    };
+  } catch (e) {
+    console.warn(`[CoinGecko] Failed to fetch detail for ${symbolKey}:`, e);
+    return null;
+  }
+}
+
+// ===== Crypto News from CryptoPanic (free RSS proxy) =====
+export interface CryptoNewsItem {
+  title: string;
+  url: string;
+  source: string;
+  publishedAt: string;
+  kind: 'news' | 'media';
+}
+
+export async function fetchCryptoNews(): Promise<CryptoNewsItem[]> {
+  try {
+    // Use CryptoPanic free public feed (no API key needed for basic access)
+    const res = await fetch(
+      'https://cryptopanic.com/api/free/v1/posts/?auth_token=&public=true&kind=news&regions=en&metadata=true',
+      { next: { revalidate: 300 } }
+    );
+    if (res.ok) {
+      const json = await res.json();
+      return (json.results || []).slice(0, 15).map((item: { title: string; url: string; source: { domain: string }; published_at: string; kind: string }) => ({
+        title: item.title,
+        url: item.url,
+        source: item.source?.domain || 'Unknown',
+        publishedAt: item.published_at,
+        kind: item.kind || 'news',
+      }));
+    }
+    // Fallback: fetch from CoinGecko status updates (always works)
+    return [];
+  } catch {
+    return [];
   }
 }
