@@ -51,6 +51,8 @@ export interface PortfolioHolding {
   coin_name: string;
   amount: number;
   buy_price: number;
+  buy_date?: string;
+  notes?: string;
   created_at: string;
   current_price?: number;
   pnl?: number;
@@ -63,6 +65,21 @@ export interface PortfolioFormData {
   coin_name: string;
   amount: number;
   buy_price: number;
+  buy_date?: string;
+  notes?: string;
+}
+
+export interface PortfolioTransaction {
+  id: string;
+  user_id: string;
+  coin_symbol: string;
+  coin_name: string;
+  type: 'buy' | 'sell';
+  amount: number;
+  price: number;
+  total_value: number;
+  notes?: string;
+  created_at: string;
 }
 
 // ===== Alert Types =====
