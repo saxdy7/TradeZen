@@ -84,12 +84,10 @@ export function usePortfolio() {
         coin_name: formData.coin_name,
         amount: formData.amount,
         buy_price: formData.buy_price,
-        buy_date: formData.buy_date || null,
-        notes: formData.notes || null,
       });
 
       if (error) throw error;
-      await logTransaction('buy', formData);
+      logTransaction('buy', formData).catch(() => {});
       await fetchHoldings();
     } catch (err) {
       console.error('Error adding holding:', err);
@@ -106,8 +104,6 @@ export function usePortfolio() {
           ...(updates.coin_name && { coin_name: updates.coin_name }),
           ...(updates.amount !== undefined && { amount: updates.amount }),
           ...(updates.buy_price !== undefined && { buy_price: updates.buy_price }),
-          ...(updates.buy_date !== undefined && { buy_date: updates.buy_date }),
-          ...(updates.notes !== undefined && { notes: updates.notes }),
         })
         .eq('id', id);
 
@@ -121,15 +117,15 @@ export function usePortfolio() {
 
   const deleteHolding = async (id: string) => {
     try {
-      // Log as sell transaction before deleting
+      // Log as sell transaction before deleting (non-blocking)
       const holding = holdings.find((h) => h.id === id);
       if (holding) {
-        await logTransaction('sell', {
+        logTransaction('sell', {
           coin_symbol: holding.coin_symbol,
           coin_name: holding.coin_name,
           amount: holding.amount,
           buy_price: holding.current_price || holding.buy_price,
-        });
+        }).catch(() => {});
       }
 
       const { error } = await supabase
