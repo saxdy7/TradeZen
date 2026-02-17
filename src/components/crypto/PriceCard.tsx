@@ -44,7 +44,7 @@ export default function PriceCard({ symbol, name, price, change, icon }: PriceCa
               <p className="text-xs text-[#8888AA]">{symbol.replace('usdt', '').toUpperCase()}/USDT</p>
             </div>
           </div>
-          <p className="text-2xl font-bold text-white mt-2 font-[family-name:var(--font-heading)]">
+          <p className="text-2xl font-bold text-white mt-2 font-[family-name:var(--font-space-grotesk)]">
             {formattedPrice}
           </p>
         </div>

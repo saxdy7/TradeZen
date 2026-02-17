@@ -104,6 +104,21 @@
   background: #3a3a4a;
 }
 
+/* Thin scrollbar for compact panels */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 3px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
 /* Selection styling */
 ::selection {
   background: rgba(0, 255, 136, 0.2);
@@ -117,4 +132,57 @@
   body {
     @apply bg-[#0A0A0F] text-white antialiased;
   }
+}
+
+/* Animated Get Started button (Uiverse-style) */
+.get-started-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85em 2.2em;
+  border-radius: 30em;
+  font-size: 1.1rem;
+  font-weight: 600;
+  font-family: var(--font-space-grotesk), sans-serif;
+  border: none;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  color: #fff;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow:
+    0 0 20px rgba(0, 255, 136, 0.15),
+    inset 0 0 0 1px rgba(0, 255, 136, 0.2);
+  transition: color 0.4s ease, box-shadow 0.4s ease;
+}
+
+.get-started-btn::before {
+  content: '';
+  width: 0;
+  height: 100%;
+  border-radius: 30em;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-image: linear-gradient(to right, #00FF88 0%, #00D4FF 100%);
+  transition: width 0.5s ease;
+  display: block;
+  z-index: -1;
+}
+
+.get-started-btn:hover::before {
+  width: 100%;
+}
+
+.get-started-btn:hover {
+  color: #0A0A0F;
+  box-shadow:
+    0 0 30px rgba(0, 255, 136, 0.3),
+    0 0 60px rgba(0, 212, 255, 0.15);
+}
+
+.get-started-btn-text {
+  position: relative;
+  z-index: 1;
 }

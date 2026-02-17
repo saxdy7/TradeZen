@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { useBinanceWS } from '@/hooks/useBinanceWS';
 import { MAIN_SYMBOLS } from '@/lib/binance';
 
+// PriceTicker uses its own WebSocket because it's used on the landing page
+// (outside the CryptoProvider). This is the only standalone WS consumer.
 export default function PriceTicker() {
   const { tickerList } = useBinanceWS({ symbols: MAIN_SYMBOLS });
 

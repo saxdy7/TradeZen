@@ -51,30 +51,30 @@ export default function PortfolioPage() {
   const totalPnlPercent = totalInvested > 0 ? (totalPnl / totalInvested) * 100 : 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 lg:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-white font-[family-name:var(--font-space-grotesk)]">
+          <h1 className="text-xl lg:text-2xl font-bold text-white font-[family-name:var(--font-space-grotesk)]">
             Portfolio
           </h1>
-          <p className="text-sm text-[#8888AA] mt-1">Track your crypto holdings</p>
+          <p className="text-xs lg:text-sm text-[#8888AA] mt-1">Track your crypto holdings</p>
         </div>
         <HoldingForm onSubmit={addHolding} />
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl border border-white/5 bg-[#12121A] p-5"
+          className="rounded-xl border border-white/5 bg-[#12121A] p-4 lg:p-5"
         >
           <div className="flex items-center gap-2 mb-2">
             <DollarSign className="w-4 h-4 text-[#00D4FF]" />
             <span className="text-xs text-[#8888AA]">Total Value</span>
           </div>
-          <p className="text-2xl font-bold text-white font-[family-name:var(--font-space-grotesk)]">
+          <p className="text-xl lg:text-2xl font-bold text-white font-[family-name:var(--font-space-grotesk)]">
             ${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
           </p>
         </motion.div>
@@ -83,7 +83,7 @@ export default function PortfolioPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="rounded-xl border border-white/5 bg-[#12121A] p-5"
+          className="rounded-xl border border-white/5 bg-[#12121A] p-4 lg:p-5"
         >
           <div className="flex items-center gap-2 mb-2">
             <Wallet className="w-4 h-4 text-[#FFD93D]" />
@@ -134,7 +134,8 @@ export default function PortfolioPage() {
                 No holdings yet. Add your first crypto holding!
               </div>
             ) : (
-              <table className="w-full">
+              <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px]">
                 <thead>
                   <tr className="border-b border-white/5">
                     <th className="text-left text-xs text-[#8888AA] font-medium px-4 py-3">Coin</th>
@@ -191,6 +192,7 @@ export default function PortfolioPage() {
                   })}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         </div>

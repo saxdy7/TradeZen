@@ -41,7 +41,13 @@ export default function SignupPage() {
         if (profileError) console.error('Profile creation error:', profileError);
       }
 
-      router.push('/dashboard');
+      // If session exists, user is confirmed → go to dashboard
+      // If no session, email confirmation is enabled → show message
+      if (data.session) {
+        router.push('/dashboard');
+      } else {
+        setError('Check your email for a confirmation link, then sign in.');
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Signup failed';
       setError(message);

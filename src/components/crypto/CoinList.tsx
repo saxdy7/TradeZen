@@ -4,17 +4,18 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { COIN_NAMES, COIN_ICONS } from '@/lib/binance';
+import { COIN_NAMES, COIN_ICONS, type CoinMarketInfo } from '@/lib/binance';
 import type { CryptoTicker } from '@/types';
 
 interface CoinListProps {
   tickers: Record<string, CryptoTicker>;
+  coinMarketData?: Record<string, CoinMarketInfo>;
   onSelectCoin?: (symbol: string) => void;
 }
 
 type Tab = 'all' | 'gainers' | 'losers';
 
-export default function CoinList({ tickers, onSelectCoin }: CoinListProps) {
+export default function CoinList({ tickers, coinMarketData, onSelectCoin }: CoinListProps) {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<Tab>('all');
 
@@ -77,13 +78,15 @@ export default function CoinList({ tickers, onSelectCoin }: CoinListProps) {
 
       {/* Table */}
       <div className="rounded-xl border border-white/5 bg-[#12121A] overflow-hidden">
-        <table className="w-full">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[580px]">
           <thead>
             <tr className="border-b border-white/5">
               <th className="text-left text-xs text-[#8888AA] font-medium px-4 py-3">#</th>
               <th className="text-left text-xs text-[#8888AA] font-medium px-4 py-3">Coin</th>
               <th className="text-right text-xs text-[#8888AA] font-medium px-4 py-3">Price</th>
               <th className="text-right text-xs text-[#8888AA] font-medium px-4 py-3">24h Change</th>
+              <th className="text-right text-xs text-[#8888AA] font-medium px-4 py-3 hidden md:table-cell">Market Cap</th>
               <th className="text-right text-xs text-[#8888AA] font-medium px-4 py-3">24h Volume</th>
             </tr>
           </thead>
@@ -128,6 +131,11 @@ export default function CoinList({ tickers, onSelectCoin }: CoinListProps) {
                       {isPositive ? '+' : ''}{ticker.changeNum.toFixed(2)}%
                     </span>
                   </td>
+                  <td className="px-4 py-3 text-right text-sm text-[#8888AA] hidden md:table-cell">
+                    {coinMarketData?.[ticker.symbol]?.marketCap
+                      ? `$${(coinMarketData[ticker.symbol].marketCap / 1e9).toFixed(2)}B`
+                      : '—'}
+                  </td>
                   <td className="px-4 py-3 text-right text-sm text-[#8888AA]">
                     ${(parseFloat(ticker.quoteVolume) / 1e6).toFixed(2)}M
                   </td>
@@ -136,6 +144,7 @@ export default function CoinList({ tickers, onSelectCoin }: CoinListProps) {
             })}
           </tbody>
         </table>
+        </div>
         {filtered.length === 0 && (
           <div className="py-8 text-center text-[#8888AA] text-sm">No coins found</div>
         )}

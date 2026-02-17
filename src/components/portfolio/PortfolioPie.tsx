@@ -63,7 +63,7 @@ export default function PortfolioPie({ holdings }: PortfolioPieProps) {
               style={{ backgroundColor: COLORS[i % COLORS.length] }}
             />
             <span className="text-xs text-[#8888AA]">
-              {item.name} ({((item.value / total) * 100).toFixed(1)}%)
+              {item.name} ({total > 0 ? ((item.value / total) * 100).toFixed(1) : '0.0'}%)
             </span>
           </div>
         ))}

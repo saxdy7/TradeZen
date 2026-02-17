@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAlerts } from '@/hooks/useAlerts';
-import { useBinanceWS } from '@/hooks/useBinanceWS';
-import { TRACKED_SYMBOLS, COIN_NAMES } from '@/lib/binance';
+import { useCrypto } from '@/contexts/CryptoContext';
+import { COIN_NAMES, TRACKED_SYMBOLS } from '@/lib/binance';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Bell, BellRing, Trash2, Plus, ArrowUp, ArrowDown, Check } from 'lucide-react';
@@ -12,7 +12,7 @@ import type { AlertFormData } from '@/types';
 
 export default function AlertsPage() {
   const { alerts, loading, addAlert, deleteAlert, triggerAlert } = useAlerts();
-  const { tickers } = useBinanceWS({ symbols: TRACKED_SYMBOLS });
+  const { tickers } = useCrypto();
   const [showForm, setShowForm] = useState(false);
   const [notification, setNotification] = useState<string | null>(null);
   const [formData, setFormData] = useState<AlertFormData>({
@@ -66,7 +66,7 @@ export default function AlertsPage() {
   const triggeredAlerts = alerts.filter((a) => a.is_triggered);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 lg:space-y-6">
       {/* Notification Toast */}
       <AnimatePresence>
         {notification && (
@@ -74,7 +74,7 @@ export default function AlertsPage() {
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
-            className="fixed top-20 right-6 z-50 px-4 py-3 rounded-xl bg-[#00FF88]/10 border border-[#00FF88]/20 text-[#00FF88] text-sm font-medium shadow-lg"
+            className="fixed top-16 right-4 left-4 sm:left-auto sm:right-6 z-50 px-4 py-3 rounded-xl bg-[#00FF88]/10 border border-[#00FF88]/20 text-[#00FF88] text-sm font-medium shadow-lg"
           >
             {notification}
           </motion.div>
@@ -82,12 +82,12 @@ export default function AlertsPage() {
       </AnimatePresence>
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-white font-[family-name:var(--font-space-grotesk)]">
+          <h1 className="text-xl lg:text-2xl font-bold text-white font-[family-name:var(--font-space-grotesk)]">
             Price Alerts
           </h1>
-          <p className="text-sm text-[#8888AA] mt-1">
+          <p className="text-xs lg:text-sm text-[#8888AA] mt-1">
             Get notified when prices hit your targets
           </p>
         </div>

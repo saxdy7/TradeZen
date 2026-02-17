@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Sparkles, User, Bot } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import type { ChatMessage } from '@/types';
 
 const QUICK_PROMPTS = [
@@ -31,12 +30,10 @@ export default function ChatInterface({
   streamingContent,
 }: ChatInterfaceProps) {
   const [input, setInput] = useState('');
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, streamingContent]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -60,7 +57,7 @@ export default function ChatInterface({
         </div>
         <div>
           <p className="text-sm font-medium text-white">TradeZen AI Mentor</p>
-          <p className="text-xs text-[#8888AA]">Powered by Llama 3 70B</p>
+          <p className="text-xs text-[#8888AA]">Powered by Llama 3.3 70B</p>
         </div>
         <div className="ml-auto flex items-center gap-1.5">
           <div className="w-2 h-2 rounded-full bg-[#00FF88] animate-pulse" />
@@ -69,7 +66,7 @@ export default function ChatInterface({
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+      <div className="flex-1 overflow-y-auto p-4">
         <div className="space-y-4">
           {/* Welcome message */}
           {messages.length === 0 && !streamingContent && (
@@ -170,8 +167,9 @@ export default function ChatInterface({
               </div>
             </motion.div>
           )}
+          <div ref={messagesEndRef} />
         </div>
-      </ScrollArea>
+      </div>
 
       {/* Quick prompts (shown when there are messages) */}
       {messages.length > 0 && (
