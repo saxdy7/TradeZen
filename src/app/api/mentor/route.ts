@@ -1,9 +1,10 @@
 import { NextRequest } from 'next/server';
-import { groq, SYSTEM_PROMPT } from '@/lib/groq';
+import { groq, AI_PERSONAS, BASE_RULES } from '@/lib/groq';
+import type { AIPersona } from '@/lib/groq';
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, marketContext } = await req.json();
+    const { messages, marketContext, persona, portfolioContext, analysisRequest } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: 'Messages array is required' }), {
@@ -12,20 +13,38 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Inject live market context into system prompt
-    const systemPrompt = marketContext
-      ? SYSTEM_PROMPT + '\n\n' + marketContext + '\nUse this live data to provide current, relevant market analysis when users ask about prices, trends, or which coins to watch.'
-      : SYSTEM_PROMPT;
+    // Select persona prompt
+    const selectedPersona: AIPersona = persona && AI_PERSONAS[persona as AIPersona] ? persona : 'analyst';
+    let systemPrompt = AI_PERSONAS[selectedPersona].prompt + BASE_RULES;
+
+    // Inject live market context
+    if (marketContext) {
+      systemPrompt += '\n\n' + marketContext + '\nUse this live data to provide current, relevant market analysis when users ask about prices, trends, or which coins to watch.';
+    }
+
+    // Inject portfolio context if user enabled it
+    if (portfolioContext) {
+      systemPrompt += '\n\n[USER PORTFOLIO]\n' + portfolioContext + '\nThe user has shared their portfolio. Reference it when giving personalized advice, portfolio reviews, or rebalancing suggestions.';
+    }
+
+    // If this is a quick analysis request, prepend analysis instruction
+    const processedMessages = [...messages.slice(-20)];
+    if (analysisRequest) {
+      processedMessages.push({
+        role: 'user' as const,
+        content: analysisRequest,
+      });
+    }
 
     const response = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       messages: [
         { role: 'system', content: systemPrompt },
-        ...messages.slice(-20), // Keep last 20 messages for context
+        ...processedMessages,
       ],
       stream: true,
-      temperature: 0.7,
-      max_tokens: 2048,
+      temperature: selectedPersona === 'trader' ? 0.5 : selectedPersona === 'degen' ? 0.8 : 0.7,
+      max_tokens: 4096,
     });
 
     // Create a readable stream for SSE
