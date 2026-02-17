@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { ChatMessage } from '@/types';
-import type { AIPersona } from '@/lib/groq';
+import type { AIPersona } from '@/lib/ai-personas';
 
 const PROMPT_CATEGORIES: Record<string, { icon: string; prompts: string[] }> = {
   'Analysis': {

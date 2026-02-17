@@ -7,7 +7,7 @@ import {
   BarChart3, Zap, Search, TrendingUp,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { AI_PERSONAS, type AIPersona } from '@/lib/groq';
+import { AI_PERSONAS, type AIPersona } from '@/lib/ai-personas';
 import { TRACKED_SYMBOLS, COIN_NAMES } from '@/lib/binance';
 
 const COIN_LIST = TRACKED_SYMBOLS.slice(0, 20).map((s) => ({

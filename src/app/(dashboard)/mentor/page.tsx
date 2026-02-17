@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
 import { useCrypto } from '@/contexts/CryptoContext';
 import { COIN_NAMES } from '@/lib/binance';
-import { AI_PERSONAS, type AIPersona } from '@/lib/groq';
+import { AI_PERSONAS, type AIPersona } from '@/lib/ai-personas';
 import { usePortfolio } from '@/hooks/usePortfolio';
 import ChatInterface from '@/components/mentor/ChatInterface';
 import MentorToolbar from '@/components/mentor/MentorToolbar';
