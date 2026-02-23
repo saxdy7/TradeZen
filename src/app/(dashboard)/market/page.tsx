@@ -19,6 +19,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { COIN_NAMES, COIN_ICONS, type CoinMarketInfo } from '@/lib/binance';
 import type { CryptoTicker } from '@/types';
+import CryptoNews from '@/components/crypto/CryptoNews';
 
 // ───── Types ─────
 type TradingTab = 'orderbook' | 'trades' | 'depth';
@@ -785,6 +786,9 @@ export default function MarketPage() {
           )}
         </div>
       )}
+
+      {/* ─── Crypto News ─── */}
+      <CryptoNews maxItems={12} />
     </div>
   );
 }

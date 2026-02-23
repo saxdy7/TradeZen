@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Sparkles, User, Bot, Copy, Check, RefreshCw, Clock } from 'lucide-react';
+import { Send, Sparkles, User, Bot, Copy, Check, RefreshCw, Clock, Code2, Table2, ListOrdered, Hash, Quote, FileCode, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { ChatMessage } from '@/types';
 import type { AIPersona } from '@/lib/ai-personas';
@@ -47,6 +47,136 @@ const PROMPT_CATEGORIES: Record<string, { icon: string; prompts: string[] }> = {
       'Smart money movements this week?',
     ],
   },
+};
+
+// ═══════════════════════════════════════════════
+// PRO MARKDOWN COMPONENTS
+// ═══════════════════════════════════════════════
+const mdComponents: Components = {
+  // ── Headers with gradient accents ──
+  h1: ({ children }) => (
+    <div className="mt-4 mb-3 pb-2 border-b border-[#00FF88]/20">
+      <h1 className="text-lg font-bold text-white flex items-center gap-2 font-[family-name:var(--font-space-grotesk)]">
+        <span className="w-1 h-5 rounded-full bg-gradient-to-b from-[#00FF88] to-[#00D4FF] flex-shrink-0" />
+        {children}
+      </h1>
+    </div>
+  ),
+  h2: ({ children }) => (
+    <div className="mt-4 mb-2 pb-1.5 border-b border-white/5">
+      <h2 className="text-[15px] font-bold text-white flex items-center gap-2 font-[family-name:var(--font-space-grotesk)]">
+        <span className="w-1 h-4 rounded-full bg-[#00D4FF] flex-shrink-0" />
+        {children}
+      </h2>
+    </div>
+  ),
+  h3: ({ children }) => (
+    <h3 className="text-sm font-semibold text-[#00D4FF] mt-3 mb-1.5 flex items-center gap-1.5">
+      <Hash className="w-3.5 h-3.5 text-[#00D4FF]/50" />
+      {children}
+    </h3>
+  ),
+  h4: ({ children }) => (
+    <h4 className="text-sm font-semibold text-[#FFD93D] mt-2 mb-1">{children}</h4>
+  ),
+
+  // ── Paragraph ──
+  p: ({ children }) => (
+    <p className="text-[13px] text-white/80 leading-relaxed my-1.5">{children}</p>
+  ),
+
+  // ── Strong / emphasis ──
+  strong: ({ children }) => <strong className="text-white font-semibold">{children}</strong>,
+  em: ({ children }) => <em className="text-[#00D4FF] not-italic font-medium">{children}</em>,
+
+  // ── Links ──
+  a: ({ href, children }) => (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="text-[#00D4FF] hover:text-[#00FF88] underline underline-offset-2 transition-colors">
+      {children}
+    </a>
+  ),
+
+  // ── Unordered list ──
+  ul: ({ children }) => <ul className="my-2 space-y-1 pl-1">{children}</ul>,
+  ol: ({ children }) => <ol className="my-2 space-y-1 pl-1 counter-reset-[item]">{children}</ol>,
+  li: ({ children, ...props }) => {
+    // Detect if parent is ordered via index prop
+    return (
+      <li className="flex items-start gap-2 text-[13px] text-white/80">
+        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#00FF88]/60 flex-shrink-0" />
+        <span className="flex-1 leading-relaxed">{children}</span>
+      </li>
+    );
+  },
+
+  // ── Blockquote ──
+  blockquote: ({ children }) => (
+    <blockquote className="my-3 pl-3 border-l-2 border-[#FFD93D]/40 bg-[#FFD93D]/5 rounded-r-lg py-2 pr-3">
+      <div className="text-[13px] text-[#FFD93D]/80">{children}</div>
+    </blockquote>
+  ),
+
+  // ── Horizontal rule ──
+  hr: () => (
+    <div className="my-3 border-t border-white/5" />
+  ),
+
+  // ── Code blocks ──
+  pre: ({ children }) => (
+    <div className="my-3 rounded-lg border border-white/10 bg-[#0A0A0F] overflow-hidden">
+      <div className="flex items-center justify-between px-3 py-1.5 bg-white/[0.02] border-b border-white/5">
+        <span className="flex items-center gap-1.5 text-[10px] text-[#8888AA]">
+          <FileCode className="w-3 h-3" /> Code
+        </span>
+      </div>
+      <div className="p-3 overflow-x-auto">
+        {children}
+      </div>
+    </div>
+  ),
+  code: ({ className, children, ...props }) => {
+    const isBlock = className?.includes('language-');
+    if (isBlock) {
+      return (
+        <code className="text-xs font-mono text-[#00FF88] leading-relaxed whitespace-pre-wrap break-words">
+          {children}
+        </code>
+      );
+    }
+    // Inline code
+    return (
+      <code className="px-1.5 py-0.5 rounded bg-[#00FF88]/10 text-[#00FF88] text-xs font-mono">
+        {children}
+      </code>
+    );
+  },
+
+  // ── Tables ──
+  table: ({ children }) => (
+    <div className="my-3 rounded-lg border border-white/10 overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs">{children}</table>
+      </div>
+    </div>
+  ),
+  thead: ({ children }) => (
+    <thead className="bg-white/[0.03] border-b border-white/10">{children}</thead>
+  ),
+  tbody: ({ children }) => <tbody className="divide-y divide-white/5">{children}</tbody>,
+  tr: ({ children }) => <tr className="hover:bg-white/[0.02] transition-colors">{children}</tr>,
+  th: ({ children }) => (
+    <th className="px-3 py-2 text-left text-[10px] font-semibold text-[#8888AA] uppercase tracking-wider">
+      {children}
+    </th>
+  ),
+  td: ({ children }) => (
+    <td className="px-3 py-2 text-xs text-white/80">{children}</td>
+  ),
+
+  // ── Images ──
+  img: ({ src, alt }) => (
+    <img src={src} alt={alt || ''} className="rounded-lg border border-white/10 max-w-full my-2" />
+  ),
 };
 
 interface ChatInterfaceProps {
@@ -175,12 +305,12 @@ export default function ChatInterface({
                     className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                       msg.role === 'user'
                         ? 'bg-[#00FF88]/10 text-white border border-[#00FF88]/20'
-                        : 'bg-white/[0.03] text-white/90 border border-white/5'
+                        : 'bg-[#0E0E18] text-white/90 border border-white/5'
                     }`}
                   >
                     {msg.role === 'assistant' ? (
-                      <div className="prose prose-invert prose-sm max-w-none prose-p:my-1.5 prose-headings:my-2 prose-li:my-0.5 prose-pre:bg-[#0A0A0F] prose-pre:border prose-pre:border-white/10 prose-code:text-[#00FF88] prose-strong:text-white prose-a:text-[#00D4FF] prose-table:text-xs prose-th:text-[#8888AA] prose-th:border-b prose-th:border-white/10 prose-td:border-b prose-td:border-white/5">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                      <div className="max-w-none">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>{msg.content}</ReactMarkdown>
                       </div>
                     ) : (
                       <div className="whitespace-pre-wrap">{msg.content}</div>
@@ -226,9 +356,9 @@ export default function ChatInterface({
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#00FF88] to-[#00D4FF] flex items-center justify-center flex-shrink-0 mt-1">
                 <Bot className="w-4 h-4 text-[#0A0A0F]" />
               </div>
-              <div className="max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed bg-white/[0.03] text-white/90 border border-white/5">
-                <div className="prose prose-invert prose-sm max-w-none prose-p:my-1.5 prose-headings:my-2 prose-li:my-0.5 prose-pre:bg-[#0A0A0F] prose-pre:border prose-pre:border-white/10 prose-code:text-[#00FF88] prose-strong:text-white">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{streamingContent}</ReactMarkdown>
+              <div className="max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed bg-[#0E0E18] text-white/90 border border-white/5">
+                <div className="max-w-none">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>{streamingContent}</ReactMarkdown>
                 </div>
                 <span className="inline-block w-1.5 h-4 bg-[#00FF88] animate-pulse ml-0.5" />
               </div>
