@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { LogOut, User } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 export default function Navbar() {
   const router = useRouter();
@@ -13,9 +14,7 @@ export default function Navbar() {
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setEmail(user.email || '');
-      }
+      if (user) setEmail(user.email || '');
     };
     getUser();
   }, [supabase]);
@@ -33,10 +32,18 @@ export default function Navbar() {
       </div>
 
       <div className="flex items-center gap-2 lg:gap-4">
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#12121A] border border-white/5">
-          <User className="w-4 h-4 text-[#8888AA]" />
-          <span className="text-sm text-white/80 max-w-[150px] truncate">{email || 'Loading...'}</span>
-        </div>
+        {/* Clickable user pill → goes to /profile */}
+        <Link href="/profile">
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#12121A] border border-white/5 hover:border-[#00FF88]/30 hover:bg-[#00FF88]/5 transition-all cursor-pointer group">
+            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#00FF88] to-[#00D4FF] flex items-center justify-center flex-shrink-0">
+              <User className="w-3.5 h-3.5 text-[#0A0A0F]" />
+            </div>
+            <span className="text-sm text-white/80 max-w-[150px] truncate group-hover:text-white transition-colors">
+              {email || 'Loading...'}
+            </span>
+          </div>
+        </Link>
+
         <button
           onClick={handleLogout}
           className="flex items-center gap-2 px-2 lg:px-3 py-1.5 rounded-lg text-sm text-[#8888AA] hover:text-red-400 hover:bg-red-400/10 transition-all"

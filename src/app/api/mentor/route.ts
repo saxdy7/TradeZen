@@ -22,9 +22,16 @@ export async function POST(req: NextRequest) {
       systemPrompt += '\n\n' + marketContext + '\nUse this live data to provide current, relevant market analysis when users ask about prices, trends, or which coins to watch.';
     }
 
-    // Inject portfolio context if user enabled it
+    // Inject portfolio context — or explicitly deny access if disabled
     if (portfolioContext) {
-      systemPrompt += '\n\n[USER PORTFOLIO]\n' + portfolioContext + '\nThe user has shared their portfolio. Reference it when giving personalized advice, portfolio reviews, or rebalancing suggestions.';
+      systemPrompt += '\n\n[USER PORTFOLIO — ACCESS GRANTED]\n' + portfolioContext + '\nThe user has shared their portfolio. Reference it when giving personalized advice, portfolio reviews, or rebalancing suggestions.';
+    } else {
+      systemPrompt += `\n\n[PORTFOLIO ACCESS — DISABLED]
+The user has NOT enabled portfolio sharing. You have ZERO knowledge of their holdings.
+- Do NOT reference, recall, or infer any portfolio holdings from previous messages in this conversation.
+- If the user asks "what coins do I have", "show my portfolio", or similar — respond ONLY with:
+  "📊 Portfolio access is currently disabled. Click the **Portfolio** toggle in the toolbar above to share your holdings with me, and I'll give you personalized analysis."
+- Treat any coin holdings mentioned in earlier messages as if they were never said.`;
     }
 
     // If this is a quick analysis request, prepend analysis instruction

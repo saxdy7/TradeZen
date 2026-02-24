@@ -12,6 +12,7 @@ import {
   Zap,
   Menu,
   X,
+  User,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -21,7 +22,9 @@ const navItems = [
   { href: '/mentor', label: 'AI Mentor', icon: MessageSquare },
   { href: '/portfolio', label: 'Portfolio', icon: Wallet },
   { href: '/alerts', label: 'Alerts', icon: Bell },
+  { href: '/profile', label: 'Profile', icon: User },
 ];
+
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -73,11 +76,10 @@ export default function Sidebar() {
             <Link key={item.href} href={item.href}>
               <motion.div
                 whileHover={{ x: 4 }}
-                className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                  isActive
+                className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive
                     ? 'text-[#00FF88] bg-[#00FF88]/10'
                     : 'text-[#8888AA] hover:text-white hover:bg-white/5'
-                }`}
+                  }`}
               >
                 {isActive && (
                   <motion.div
