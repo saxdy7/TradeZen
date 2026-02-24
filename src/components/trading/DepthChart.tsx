@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { createChart, AreaSeries, type IChartApi } from 'lightweight-charts';
-import { fetchOrderBook, getBinanceDepthWSUrl } from '@/lib/binance';
+import { createChart, AreaSeries, type IChartApi, type UTCTimestamp } from 'lightweight-charts';
+import { fetchOrderBook, getBinanceDepthWSUrl, type OrderBookEntry } from '@/lib/binance';
 
 interface DepthChartProps {
   symbol?: string;
@@ -65,11 +65,11 @@ export default function DepthChart({ symbol = 'BTCUSDT' }: DepthChartProps) {
       priceScaleId: 'depth',
     });
 
-    const updateDepth = (bids: [string, string][], asks: [string, string][]) => {
+    const updateDepth = (bids: OrderBookEntry[], asks: OrderBookEntry[]) => {
       // Process bids (sorted high → low)
       const bidLevels: DepthLevel[] = [];
       let bidTotal = 0;
-      const sortedBids = bids.map(([p, q]) => ({ price: parseFloat(p), quantity: parseFloat(q) })).sort((a, b) => b.price - a.price);
+      const sortedBids = [...bids].sort((a, b) => b.price - a.price);
       for (const b of sortedBids) {
         bidTotal += b.quantity;
         bidLevels.push({ price: b.price, quantity: b.quantity, total: bidTotal });
@@ -78,7 +78,7 @@ export default function DepthChart({ symbol = 'BTCUSDT' }: DepthChartProps) {
       // Process asks (sorted low → high)
       const askLevels: DepthLevel[] = [];
       let askTotal = 0;
-      const sortedAsks = asks.map(([p, q]) => ({ price: parseFloat(p), quantity: parseFloat(q) })).sort((a, b) => a.price - b.price);
+      const sortedAsks = [...asks].sort((a, b) => a.price - b.price);
       for (const a of sortedAsks) {
         askTotal += a.quantity;
         askLevels.push({ price: a.price, quantity: a.quantity, total: askTotal });
@@ -91,16 +91,12 @@ export default function DepthChart({ symbol = 'BTCUSDT' }: DepthChartProps) {
         setMidPrice(mid);
         setSpread(((bestAsk - bestBid) / mid * 100).toFixed(4));
 
-        // Use index-based time for X-axis (depth chart is not time-based)
-        // Map bids from right to left (high price = right = closer to center)
         const bidData = bidLevels.reverse().map((b, i) => ({
-          time: (i + 1) as unknown as number,
+          time: (i + 1) as UTCTimestamp,
           value: b.total,
         }));
-
-        // Map asks from left to right (low price = left = closer to center)
         const askData = askLevels.map((a, i) => ({
-          time: (bidLevels.length + i + 1) as unknown as number,
+          time: (bidLevels.length + i + 1) as UTCTimestamp,
           value: a.total,
         }));
 
@@ -108,6 +104,10 @@ export default function DepthChart({ symbol = 'BTCUSDT' }: DepthChartProps) {
         askSeries.setData(askData);
       }
     };
+
+    // Parse raw WS [price, qty] tuples into OrderBookEntry[]
+    const parseEntries = (raw: [string, string][]): OrderBookEntry[] =>
+      raw.map(([p, q]) => ({ price: parseFloat(p), quantity: parseFloat(q), total: 0 }));
 
     // Initial load
     fetchOrderBook(symbol, 50).then((data) => {
@@ -120,8 +120,9 @@ export default function DepthChart({ symbol = 'BTCUSDT' }: DepthChartProps) {
       try {
         const msg = JSON.parse(event.data);
         if (msg.bids && msg.asks) {
-          updateDepth(msg.bids, msg.asks);
+          updateDepth(parseEntries(msg.bids), parseEntries(msg.asks));
         }
+
       } catch { /* ignore */ }
     };
     ws.onerror = () => ws.close();
