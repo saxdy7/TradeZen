@@ -426,8 +426,10 @@ export interface CoinDetailInfo {
   maxSupply: number | null;
   ath: number;
   athDate: string;
+  athChangePercent: number;
   atl: number;
   atlDate: string;
+  atlChangePercent: number;
   priceChangePercent24h: number;
   priceChangePercent7d: number;
   priceChangePercent30d: number;
@@ -462,8 +464,10 @@ export async function fetchCoinDetail(symbolKey: string): Promise<CoinDetailInfo
       maxSupply: c.market_data?.max_supply ?? null,
       ath: c.market_data?.ath?.usd ?? 0,
       athDate: c.market_data?.ath_date?.usd ?? '',
+      athChangePercent: c.market_data?.ath_change_percentage?.usd ?? 0,
       atl: c.market_data?.atl?.usd ?? 0,
       atlDate: c.market_data?.atl_date?.usd ?? '',
+      atlChangePercent: c.market_data?.atl_change_percentage?.usd ?? 0,
       priceChangePercent24h: c.market_data?.price_change_percentage_24h ?? 0,
       priceChangePercent7d: c.market_data?.price_change_percentage_7d ?? 0,
       priceChangePercent30d: c.market_data?.price_change_percentage_30d ?? 0,

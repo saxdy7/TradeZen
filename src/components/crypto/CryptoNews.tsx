@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { fetchCryptoNews, type CryptoNewsItem } from '@/lib/binance';
+import type { CryptoNewsItem } from '@/lib/binance';
 import { Newspaper, ExternalLink, RefreshCw } from 'lucide-react';
 
 interface CryptoNewsProps {
@@ -14,15 +14,25 @@ export default function CryptoNews({ maxItems = 10 }: CryptoNewsProps) {
 
   const loadNews = async () => {
     setLoading(true);
-    const items = await fetchCryptoNews();
-    setNews(items.slice(0, maxItems));
-    setLoading(false);
+    try {
+      // Fetch via server-side API route to avoid CORS / missing auth_token issues
+      const res = await fetch('/api/news');
+      if (res.ok) {
+        const items: CryptoNewsItem[] = await res.json();
+        setNews(items.slice(0, maxItems));
+      }
+    } catch {
+      // silently fail — news section shows empty state
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     loadNews();
-    const interval = window.setInterval(loadNews, 5 * 60 * 1000); // refresh every 5 min
+    const interval = window.setInterval(loadNews, 5 * 60 * 1000);
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [maxItems]);
 
   const timeAgo = (dateStr: string) => {
@@ -54,13 +64,18 @@ export default function CryptoNews({ maxItems = 10 }: CryptoNewsProps) {
         </button>
       </div>
 
-      <div className="divide-y divide-white/5 max-h-[500px] overflow-y-auto scrollbar-thin">
+      <div className="divide-y divide-white/5 max-h-[500px] overflow-y-auto">
         {loading && news.length === 0 ? (
-          <div className="flex items-center justify-center py-8">
+          <div className="flex flex-col items-center justify-center py-10 gap-2">
             <div className="w-6 h-6 border-2 border-[#00FF88]/20 border-t-[#00FF88] rounded-full animate-spin" />
+            <p className="text-[10px] text-[#555]">Loading news...</p>
           </div>
         ) : news.length === 0 ? (
-          <div className="py-8 text-center text-xs text-[#8888AA]">No news available</div>
+          <div className="py-8 text-center space-y-2">
+            <Newspaper className="w-8 h-8 text-[#8888AA]/30 mx-auto" />
+            <p className="text-xs text-[#8888AA]">No news available</p>
+            <button onClick={loadNews} className="text-[10px] text-[#00FF88] hover:underline">Try again</button>
+          </div>
         ) : (
           news.map((item, i) => (
             <a key={i} href={item.url} target="_blank" rel="noopener noreferrer"

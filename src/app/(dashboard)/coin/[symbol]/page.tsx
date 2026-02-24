@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { fetchCoinDetail, type CoinDetailInfo, COIN_NAMES, COIN_ICONS, COINGECKO_IDS, fetchBinance24hTicker } from '@/lib/binance';
+import { fetchCoinDetail, type CoinDetailInfo, COIN_NAMES, COIN_ICONS, fetchBinance24hTicker } from '@/lib/binance';
+
 import { useCrypto } from '@/contexts/CryptoContext';
 import TradingChart from '@/components/charts/TradingChart';
 import OrderBook from '@/components/trading/OrderBook';
@@ -32,16 +33,18 @@ export default function CoinDetailPage() {
   const [activeTab, setActiveTab] = useState<'orderbook' | 'trades' | 'depth'>('orderbook');
   const [stats24h, setStats24h] = useState<{ highPrice: string; lowPrice: string; volume: string; quoteVolume: string; priceChangePercent: string } | null>(null);
 
-  const ticker = tickers[symbol];
+  // Ticker keys in CryptoContext are lowercase (e.g. "btcusdt")
+  const ticker = tickers[symbol.toLowerCase()];
   const coinName = COIN_NAMES[symbolKey as keyof typeof COIN_NAMES] || symbolKey;
   const coinIcon = COIN_ICONS[symbolKey as keyof typeof COIN_ICONS] || '🪙';
-  const coingeckoId = COINGECKO_IDS[symbolKey as keyof typeof COINGECKO_IDS];
+  // symbolKeyLower is the key used in COINGECKO_IDS and fetchCoinDetail (e.g. 'btcusdt')
+  const symbolKeyLower = symbolKey.toLowerCase() + 'usdt';
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       const [detail, stats] = await Promise.all([
-        coingeckoId ? fetchCoinDetail(coingeckoId) : Promise.resolve(null),
+        fetchCoinDetail(symbolKeyLower),
         fetchBinance24hTicker(symbol),
       ]);
       if (detail) setCoinDetail(detail);
@@ -49,10 +52,12 @@ export default function CoinDetailPage() {
       setLoading(false);
     };
     load();
-  }, [symbol, coingeckoId]);
+  }, [symbol, symbolKeyLower]);
 
-  const price = ticker ? parseFloat(ticker.c) : 0;
-  const change24h = ticker ? parseFloat(ticker.P) : 0;
+
+  // CryptoTicker uses typed property names, not raw WS field names
+  const price = ticker ? parseFloat(ticker.price) : 0;
+  const change24h = ticker ? parseFloat(ticker.priceChangePercent) : 0;
   const isPositive = change24h >= 0;
 
   const formatNum = (n: number, decimals = 2) =>
@@ -149,7 +154,7 @@ export default function CoinDetailPage() {
                   <span className="text-[#8888AA] flex items-center gap-1"><TrendingUp className="w-3 h-3 text-[#00FF88]" />ATH</span>
                   <div className="text-right">
                     <span className="text-white">${coinDetail.ath.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
-                    <p className="text-red-400 text-[10px]">{coinDetail.athChangePercentage.toFixed(1)}%</p>
+                    <p className="text-red-400 text-[10px]">{coinDetail.athChangePercent.toFixed(1)}%</p>
                   </div>
                 </div>
                 {coinDetail.athDate && <p className="text-[10px] text-[#8888AA]">{new Date(coinDetail.athDate).toLocaleDateString()}</p>}
@@ -157,7 +162,7 @@ export default function CoinDetailPage() {
                   <span className="text-[#8888AA] flex items-center gap-1"><TrendingDown className="w-3 h-3 text-red-400" />ATL</span>
                   <div className="text-right">
                     <span className="text-white">${coinDetail.atl.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 })}</span>
-                    <p className="text-[#00FF88] text-[10px]">+{coinDetail.atlChangePercentage.toFixed(1)}%</p>
+                    <p className="text-[#00FF88] text-[10px]">+{coinDetail.atlChangePercent.toFixed(1)}%</p>
                   </div>
                 </div>
                 {coinDetail.atlDate && <p className="text-[10px] text-[#8888AA]">{new Date(coinDetail.atlDate).toLocaleDateString()}</p>}
@@ -171,9 +176,9 @@ export default function CoinDetailPage() {
               <h2 className="text-sm font-semibold text-white">Price Changes</h2>
               <div className="space-y-2 text-xs">
                 {[
-                  { label: '24h', value: coinDetail.priceChange24h },
-                  { label: '7d', value: coinDetail.priceChange7d },
-                  { label: '30d', value: coinDetail.priceChange30d },
+                  { label: '24h', value: coinDetail.priceChangePercent24h },
+                  { label: '7d', value: coinDetail.priceChangePercent7d },
+                  { label: '30d', value: coinDetail.priceChangePercent30d },
                 ].map(({ label, value }) => (
                   <div key={label} className="flex justify-between items-center">
                     <span className="text-[#8888AA]">{label}</span>
@@ -202,18 +207,18 @@ export default function CoinDetailPage() {
               />
               {/* Links */}
               <div className="flex flex-wrap gap-2 pt-1">
-                {coinDetail.links.homepage && (
-                  <a href={coinDetail.links.homepage} target="_blank" rel="noopener"
+                {coinDetail.homepage && (
+                  <a href={coinDetail.homepage} target="_blank" rel="noopener"
                     className="flex items-center gap-1 px-2 py-1 text-[10px] rounded bg-white/5 text-[#8888AA] hover:text-white transition-colors"
                   ><Globe className="w-3 h-3" />Website</a>
                 )}
-                {coinDetail.links.twitter && (
-                  <a href={`https://twitter.com/${coinDetail.links.twitter}`} target="_blank" rel="noopener"
+                {coinDetail.twitter && (
+                  <a href={`https://twitter.com/${coinDetail.twitter}`} target="_blank" rel="noopener"
                     className="flex items-center gap-1 px-2 py-1 text-[10px] rounded bg-white/5 text-[#8888AA] hover:text-white transition-colors"
                   ><ExternalLink className="w-3 h-3" />Twitter</a>
                 )}
-                {coinDetail.links.github && (
-                  <a href={coinDetail.links.github} target="_blank" rel="noopener"
+                {coinDetail.github && (
+                  <a href={coinDetail.github} target="_blank" rel="noopener"
                     className="flex items-center gap-1 px-2 py-1 text-[10px] rounded bg-white/5 text-[#8888AA] hover:text-white transition-colors"
                   ><ExternalLink className="w-3 h-3" />GitHub</a>
                 )}
