@@ -24,10 +24,19 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
+      // Pick the correct base URL: Vercel sets NEXT_PUBLIC_VERCEL_URL automatically in production
+      const siteUrl = process.env.NEXT_PUBLIC_VERCEL_URL
+        ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+        : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${siteUrl}/auth/callback`,
+        },
       });
+
 
       if (signUpError) throw signUpError;
 
