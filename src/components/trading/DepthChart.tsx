@@ -140,8 +140,12 @@ export default function DepthChart({ symbol = 'BTCUSDT' }: DepthChartProps) {
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      wsRef.current?.close(); wsRef.current = null;
-      chartRef.current?.remove(); chartRef.current = null;
+      wsRef.current?.close();
+      wsRef.current = null;
+      if (chartRef.current) {
+        chartRef.current.remove();
+        chartRef.current = null;
+      }
     };
   }, [symbol]);
 

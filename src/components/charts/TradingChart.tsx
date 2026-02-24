@@ -375,9 +375,9 @@ export default function TradingChart({ symbol = 'BTCUSDT', interval: initialInte
     return () => {
       window.removeEventListener('resize', handleResize);
       wsRef.current?.close(); wsRef.current = null;
-      chartRef.current?.remove(); chartRef.current = null;
-      rsiChartRef.current?.remove(); rsiChartRef.current = null;
-      macdChartRef.current?.remove(); macdChartRef.current = null;
+      if (chartRef.current) { chartRef.current.remove(); chartRef.current = null; }
+      if (rsiChartRef.current) { rsiChartRef.current.remove(); rsiChartRef.current = null; }
+      if (macdChartRef.current) { macdChartRef.current.remove(); macdChartRef.current = null; }
     };
   }, [symbol, interval, chartType, showMA7, showMA25, showMA99, showEMA12, showEMA26, showBB, showRSI, showMACD, logScale, isFullscreen]);
 
