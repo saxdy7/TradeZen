@@ -9,10 +9,11 @@ import PortfolioPie from '@/components/portfolio/PortfolioPie';
 import PortfolioPerformance from '@/components/portfolio/PortfolioPerformance';
 import PortfolioAnalytics from '@/components/portfolio/PortfolioAnalytics';
 import TransactionHistory from '@/components/portfolio/TransactionHistory';
+import DCACalculator from '@/components/portfolio/DCACalculator';
 import {
   Trash2, TrendingUp, TrendingDown, DollarSign, Wallet, Download,
   Edit3, Search, ArrowUpDown, BarChart3, History, PieChart, LayoutGrid,
-  Coins, Clock,
+  Coins, Clock, Calculator,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -121,8 +122,8 @@ export default function PortfolioPage() {
   // Best performer
   const bestPerformer = enrichedHoldings.length > 0
     ? enrichedHoldings.reduce((best, h) =>
-        (h.pnl_percent || 0) > (best.pnl_percent || 0) ? h : best
-      )
+      (h.pnl_percent || 0) > (best.pnl_percent || 0) ? h : best
+    )
     : null;
 
   const handleSort = (key: SortKey) => {
@@ -132,6 +133,29 @@ export default function PortfolioPage() {
       setSortKey(key);
       setSortAsc(false);
     }
+  };
+
+  const handleExportCSV = () => {
+    if (enrichedHoldings.length === 0) return;
+    const headers = ['Coin', 'Symbol', 'Amount', 'Buy Price', 'Current Price', 'Current Value', 'P&L', 'P&L %'];
+    const rows = enrichedHoldings.map(h => [
+      h.coin_name,
+      h.coin_symbol,
+      h.amount,
+      h.buy_price.toFixed(6),
+      (h.current_price || 0).toFixed(6),
+      (h.current_value || 0).toFixed(2),
+      (h.pnl || 0).toFixed(2),
+      (h.pnl_percent || 0).toFixed(2) + '%'
+    ]);
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `tradezen-portfolio-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -149,7 +173,7 @@ export default function PortfolioPage() {
         <div className="flex items-center gap-2">
           {enrichedHoldings.length > 0 && (
             <Button
-              onClick={exportCSV}
+              onClick={handleExportCSV}
               variant="outline"
               className="border-white/10 text-[#8888AA] hover:text-white text-xs h-9"
             >
@@ -259,11 +283,10 @@ export default function PortfolioPage() {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded-lg transition-all ${
-              activeTab === tab.key
-                ? 'bg-[#12121A] text-[#00FF88] shadow-lg'
-                : 'text-[#8888AA] hover:text-white'
-            }`}
+            className={`flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded-lg transition-all ${activeTab === tab.key
+              ? 'bg-[#12121A] text-[#00FF88] shadow-lg'
+              : 'text-[#8888AA] hover:text-white'
+              }`}
           >
             <tab.icon className="w-3.5 h-3.5" />
             {tab.label}

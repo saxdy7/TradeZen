@@ -21,6 +21,13 @@ export default function AlertsPage() {
     direction: 'above',
   });
 
+  // Request browser notification permission
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
   // Check alerts against current prices
   const checkAlerts = useCallback(() => {
     alerts
@@ -36,9 +43,18 @@ export default function AlertsPage() {
 
         if (triggered) {
           triggerAlert(alert.id);
-          setNotification(
-            `🔔 ${alert.coin_symbol} hit $${alert.target_price.toLocaleString()} (${alert.direction})!`
-          );
+          const msg = `${alert.coin_symbol} hit $${alert.target_price.toLocaleString()} (${alert.direction})!`;
+
+          setNotification(`🔔 ${msg}`);
+
+          // Trigger browser push notification
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('TradeZen Price Alert', {
+              body: msg,
+              icon: '/icon.png' // Provide a relative icon path if available
+            });
+          }
+
           setTimeout(() => setNotification(null), 5000);
         }
       });
@@ -147,22 +163,20 @@ export default function AlertsPage() {
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, direction: 'above' })}
-                    className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-md text-sm ${
-                      formData.direction === 'above'
+                    className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-md text-sm ${formData.direction === 'above'
                         ? 'bg-[#00FF88]/10 text-[#00FF88] border border-[#00FF88]/20'
                         : 'bg-[#0A0A0F] text-[#8888AA] border border-white/10'
-                    }`}
+                      }`}
                   >
                     <ArrowUp className="w-3 h-3" /> Above
                   </button>
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, direction: 'below' })}
-                    className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-md text-sm ${
-                      formData.direction === 'below'
+                    className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-md text-sm ${formData.direction === 'below'
                         ? 'bg-red-400/10 text-red-400 border border-red-400/20'
                         : 'bg-[#0A0A0F] text-[#8888AA] border border-white/10'
-                    }`}
+                      }`}
                   >
                     <ArrowDown className="w-3 h-3" /> Below
                   </button>

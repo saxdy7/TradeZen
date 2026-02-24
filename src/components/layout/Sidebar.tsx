@@ -13,17 +13,23 @@ import {
   Menu,
   X,
   User,
+  SlidersHorizontal,
+  Calculator,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/market', label: 'Market', icon: TrendingUp },
+  { href: '/screener', label: 'Screener', icon: SlidersHorizontal },
   { href: '/mentor', label: 'AI Mentor', icon: MessageSquare },
   { href: '/portfolio', label: 'Portfolio', icon: Wallet },
   { href: '/alerts', label: 'Alerts', icon: Bell },
+  { href: '/dca', label: 'DCA Calc', icon: Calculator },
   { href: '/profile', label: 'Profile', icon: User },
 ];
+
+
 
 
 export default function Sidebar() {
@@ -77,8 +83,8 @@ export default function Sidebar() {
               <motion.div
                 whileHover={{ x: 4 }}
                 className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive
-                    ? 'text-[#00FF88] bg-[#00FF88]/10'
-                    : 'text-[#8888AA] hover:text-white hover:bg-white/5'
+                  ? 'text-[#00FF88] bg-[#00FF88]/10'
+                  : 'text-[#8888AA] hover:text-white hover:bg-white/5'
                   }`}
               >
                 {isActive && (
