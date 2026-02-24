@@ -1,80 +1,128 @@
 import { NextResponse } from 'next/server';
 import type { CryptoNewsItem } from '@/lib/binance';
 
-// Try multiple free crypto news sources server-side to avoid CORS
-async function fetchFromCryptoPanic(): Promise<CryptoNewsItem[]> {
-    const res = await fetch(
-        'https://cryptopanic.com/api/free/v1/posts/?public=true&kind=news&regions=en',
-        { next: { revalidate: 300 } }
-    );
-    if (!res.ok) throw new Error(`CryptoPanic HTTP ${res.status}`);
-    const json = await res.json();
-    return (json.results || []).slice(0, 20).map((item: {
-        title: string; url: string; domain?: string;
-        source?: { domain: string }; published_at: string; kind: string;
-    }) => ({
-        title: item.title,
-        url: item.url,
-        source: item.source?.domain || item.domain || 'CryptoPanic',
-        publishedAt: item.published_at,
-        kind: item.kind || 'news',
-    }));
+// Strip CDATA wrapper if present: <![CDATA[content]]>
+function stripCDATA(str: string): string {
+    return str.replace(/^<!\[CDATA\[([\s\S]*?)\]\]>$/, '$1').trim();
 }
 
-async function fetchFromRSS(): Promise<CryptoNewsItem[]> {
-    // Use rss2json to convert CoinDesk RSS to JSON — no API key needed
-    const rssUrl = encodeURIComponent('https://www.coindesk.com/arc/outboundfeeds/rss/');
-    const res = await fetch(
-        `https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}&count=20`,
-        { next: { revalidate: 300 } }
-    );
-    if (!res.ok) throw new Error(`RSS2JSON HTTP ${res.status}`);
-    const json = await res.json();
-    if (json.status !== 'ok') throw new Error('RSS2JSON error');
-    return (json.items || []).map((item: {
-        title: string; link: string; pubDate: string;
-    }) => ({
-        title: item.title,
-        url: item.link,
-        source: 'CoinDesk',
-        publishedAt: item.pubDate,
-        kind: 'news' as const,
-    }));
+// Get first match + strip CDATA
+function extractField(xml: string, tag: string): string {
+    // Try CDATA form first
+    const cdataMatch = xml.match(new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${tag}>`, 'i'));
+    if (cdataMatch) return cdataMatch[1].trim();
+
+    // Plain text form
+    const plainMatch = xml.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'));
+    if (plainMatch) return stripCDATA(plainMatch[1]).trim();
+
+    return '';
 }
 
-async function fetchFromCryptoPanicNoKey(): Promise<CryptoNewsItem[]> {
-    // Alternative: direct CryptoPanic with no token (public feed)
-    const res = await fetch(
-        'https://cryptopanic.com/api/free/v1/posts/?public=true',
-        { cache: 'no-store' }
-    );
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
-    return (json.results || []).slice(0, 20).map((item: {
-        title: string; url: string; source?: { domain: string }; published_at: string; kind: string;
-    }) => ({
-        title: item.title,
-        url: item.url,
-        source: item.source?.domain || 'Crypto News',
-        publishedAt: item.published_at,
-        kind: item.kind || 'news',
-    }));
+// For <link> in RSS, it can appear as:
+//   <link>https://...</link>
+//   <link><![CDATA[https://...]]></link>
+//   <link /> (self-closing, atom) followed by href attr
+//   or inside <guid> as a fallback
+function extractLink(itemXml: string): string {
+    // CDATA form
+    const cdataLink = itemXml.match(/<link[^>]*><!\[CDATA\[([\s\S]*?)\]\]><\/link>/i)?.[1];
+    if (cdataLink) return cdataLink.trim();
+
+    // Plain <link>...</link>
+    const plainLink = itemXml.match(/<link[^>]*>(https?:\/\/[^\s<]+)<\/link>/i)?.[1];
+    if (plainLink) return plainLink.trim();
+
+    // Atom <link href="..." />
+    const atomLink = itemXml.match(/<link[^>]+href=["']([^"']+)["']/i)?.[1];
+    if (atomLink) return atomLink.trim();
+
+    // Fallback: <guid>
+    const guid = itemXml.match(/<guid[^>]*>(https?:\/\/[^\s<]+)<\/guid>/i)?.[1];
+    if (guid) return guid.trim();
+
+    return '';
+}
+
+// Decode common HTML entities
+function decodeEntities(str: string): string {
+    return str
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#039;/g, "'")
+        .replace(/&apos;/g, "'")
+        .replace(/&#8217;/g, '\u2019')
+        .replace(/&#8216;/g, '\u2018')
+        .replace(/&#8220;/g, '\u201C')
+        .replace(/&#8221;/g, '\u201D');
+}
+
+function parseRSS(xml: string, sourceName: string): CryptoNewsItem[] {
+    const items: CryptoNewsItem[] = [];
+    const itemMatches = xml.match(/<item[\s\S]*?<\/item>/g) || [];
+
+    for (const item of itemMatches.slice(0, 8)) {
+        const title = decodeEntities(extractField(item, 'title'));
+        const link = extractLink(item);
+        const pubDate = extractField(item, 'pubDate') || extractField(item, 'published') || new Date().toISOString();
+
+        if (title && link && link.startsWith('http')) {
+            items.push({
+                title,
+                url: link,
+                source: sourceName,
+                publishedAt: (() => { try { return new Date(pubDate).toISOString(); } catch { return new Date().toISOString(); } })(),
+                kind: 'news',
+            });
+        }
+    }
+    return items;
+}
+
+const RSS_FEEDS = [
+    { url: 'https://cointelegraph.com/rss', name: 'CoinTelegraph' },
+    { url: 'https://www.coindesk.com/arc/outboundfeeds/rss/', name: 'CoinDesk' },
+    { url: 'https://decrypt.co/feed', name: 'Decrypt' },
+    { url: 'https://cryptopotato.com/feed/', name: 'CryptoPotato' },
+];
+
+async function fetchFeed(feed: { url: string; name: string }): Promise<CryptoNewsItem[]> {
+    const res = await fetch(feed.url, {
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; TradeZen/1.0)',
+            'Accept': 'application/rss+xml, application/xml, text/xml, */*',
+        },
+        next: { revalidate: 300 },
+    });
+    if (!res.ok) throw new Error(`${feed.name} HTTP ${res.status}`);
+    const xml = await res.text();
+    return parseRSS(xml, feed.name);
 }
 
 export async function GET() {
-    // Try sources in order, fall back to next if one fails
-    const sources = [fetchFromCryptoPanic, fetchFromCryptoPanicNoKey, fetchFromRSS];
-    for (const fetchFn of sources) {
-        try {
-            const items = await fetchFn();
-            if (items.length > 0) {
-                return NextResponse.json(items, {
-                    headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60' },
-                });
-            }
-        } catch {
-            // try next source
-        }
+    const results = await Promise.allSettled(RSS_FEEDS.map(fetchFeed));
+
+    const allItems: CryptoNewsItem[] = [];
+    for (const result of results) {
+        if (result.status === 'fulfilled') allItems.push(...result.value);
     }
-    return NextResponse.json([], { status: 200 });
+
+    // Sort by date desc, deduplicate by title prefix
+    const seen = new Set<string>();
+    const deduped = allItems
+        .filter(item => item.title && item.url)
+        .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+        .filter(item => {
+            const key = item.title.slice(0, 50).toLowerCase();
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        })
+        .slice(0, 20);
+
+    return NextResponse.json(deduped, {
+        headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60' },
+    });
 }

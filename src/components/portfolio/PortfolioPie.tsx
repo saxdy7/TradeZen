@@ -50,7 +50,7 @@ export default function PortfolioPie({ holdings }: PortfolioPieProps) {
               borderRadius: '8px',
               color: '#fff',
             }}
-            formatter={(value: number) => [`$${value.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 'Value']}
+            formatter={(value: number | undefined) => [`$${(value ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 'Value']}
           />
         </PieChart>
       </ResponsiveContainer>

@@ -7,6 +7,7 @@ import {
   LineSeries,
   AreaSeries,
   HistogramSeries,
+  type UTCTimestamp,
   type IChartApi,
   type ISeriesApi,
 } from 'lightweight-charts';
@@ -14,11 +15,11 @@ import { fetchBinanceKlines, fetchBinance24hTicker, getBinanceKlineWSUrl } from 
 import { Maximize2, Minimize2, BarChart3, LineChart, AreaChart, Settings2 } from 'lucide-react';
 
 type ChartType = 'candles' | 'line' | 'area';
-type KlineData = { time: number; open: number; high: number; low: number; close: number; volume: number };
+type KlineData = { time: UTCTimestamp; open: number; high: number; low: number; close: number; volume: number };
 
 // === Technical Indicator Computations ===
 function computeSMA(data: KlineData[], period: number) {
-  const result: { time: number; value: number }[] = [];
+  const result: { time: UTCTimestamp; value: number }[] = [];
   for (let i = period - 1; i < data.length; i++) {
     let sum = 0;
     for (let j = 0; j < period; j++) sum += data[i - j].close;
@@ -28,7 +29,7 @@ function computeSMA(data: KlineData[], period: number) {
 }
 
 function computeEMA(data: KlineData[], period: number) {
-  const result: { time: number; value: number }[] = [];
+  const result: { time: UTCTimestamp; value: number }[] = [];
   if (data.length < period) return result;
   const k = 2 / (period + 1);
   let ema = data.slice(0, period).reduce((s, d) => s + d.close, 0) / period;
@@ -41,9 +42,9 @@ function computeEMA(data: KlineData[], period: number) {
 }
 
 function computeBollingerBands(data: KlineData[], period: number = 20, stdDev: number = 2) {
-  const upper: { time: number; value: number }[] = [];
-  const middle: { time: number; value: number }[] = [];
-  const lower: { time: number; value: number }[] = [];
+  const upper: { time: UTCTimestamp; value: number }[] = [];
+  const middle: { time: UTCTimestamp; value: number }[] = [];
+  const lower: { time: UTCTimestamp; value: number }[] = [];
   for (let i = period - 1; i < data.length; i++) {
     const slice = data.slice(i - period + 1, i + 1);
     const mean = slice.reduce((s, d) => s + d.close, 0) / period;
@@ -57,7 +58,7 @@ function computeBollingerBands(data: KlineData[], period: number = 20, stdDev: n
 }
 
 function computeRSI(data: KlineData[], period: number = 14) {
-  const result: { time: number; value: number }[] = [];
+  const result: { time: UTCTimestamp; value: number }[] = [];
   if (data.length < period + 1) return result;
   let avgGain = 0, avgLoss = 0;
   for (let i = 1; i <= period; i++) {
@@ -81,7 +82,7 @@ function computeRSI(data: KlineData[], period: number = 14) {
 function computeMACD(data: KlineData[], fast: number = 12, slow: number = 26, signal: number = 9) {
   const emaFast = computeEMA(data, fast);
   const emaSlow = computeEMA(data, slow);
-  const macdLine: { time: number; value: number }[] = [];
+  const macdLine: { time: UTCTimestamp; value: number }[] = [];
   const startIdx = slow - fast;
   for (let i = 0; i < emaSlow.length; i++) {
     const fi = i + startIdx;
@@ -90,7 +91,7 @@ function computeMACD(data: KlineData[], fast: number = 12, slow: number = 26, si
     }
   }
   // Signal line (EMA of MACD)
-  const signalLine: { time: number; value: number }[] = [];
+  const signalLine: { time: UTCTimestamp; value: number }[] = [];
   if (macdLine.length >= signal) {
     const k = 2 / (signal + 1);
     let ema = macdLine.slice(0, signal).reduce((s, d) => s + d.value, 0) / signal;
@@ -101,7 +102,7 @@ function computeMACD(data: KlineData[], fast: number = 12, slow: number = 26, si
     }
   }
   // Histogram
-  const histogram: { time: number; value: number; color: string }[] = [];
+  const histogram: { time: UTCTimestamp; value: number; color: string }[] = [];
   const signalStart = macdLine.length - signalLine.length;
   for (let i = 0; i < signalLine.length; i++) {
     const mi = i + signalStart;
@@ -238,7 +239,7 @@ export default function TradingChart({ symbol = 'BTCUSDT', interval: initialInte
     if (showRSI && rsiContainerRef.current) {
       const rsiChart = createChart(rsiContainerRef.current, { ...chartOpts, height: 100 });
       rsiChartRef.current = rsiChart;
-      rsiSeries = rsiChart.addSeries(LineSeries, { color: '#FFD93D', lineWidth: 1.5, priceLineVisible: false });
+      rsiSeries = rsiChart.addSeries(LineSeries, { color: '#FFD93D', lineWidth: 2, priceLineVisible: false });
       rsi70Line = rsiChart.addSeries(LineSeries, { color: 'rgba(255,68,102,0.3)', lineWidth: 1, priceLineVisible: false, lastValueVisible: false, lineStyle: 2 });
       rsi30Line = rsiChart.addSeries(LineSeries, { color: 'rgba(0,255,136,0.3)', lineWidth: 1, priceLineVisible: false, lastValueVisible: false, lineStyle: 2 });
     }
@@ -250,8 +251,8 @@ export default function TradingChart({ symbol = 'BTCUSDT', interval: initialInte
     if (showMACD && macdContainerRef.current) {
       const macdChart = createChart(macdContainerRef.current, { ...chartOpts, height: 100 });
       macdChartRef.current = macdChart;
-      macdLineSeries = macdChart.addSeries(LineSeries, { color: '#00D4FF', lineWidth: 1.5, priceLineVisible: false });
-      macdSignalSeries = macdChart.addSeries(LineSeries, { color: '#FF6B6B', lineWidth: 1.5, priceLineVisible: false });
+      macdLineSeries = macdChart.addSeries(LineSeries, { color: '#00D4FF', lineWidth: 2, priceLineVisible: false });
+      macdSignalSeries = macdChart.addSeries(LineSeries, { color: '#FF6B6B', lineWidth: 2, priceLineVisible: false });
       macdHistSeries = macdChart.addSeries(HistogramSeries, { priceFormat: { type: 'price' }, priceScaleId: '' });
       macdHistSeries.priceScale().applyOptions({ scaleMargins: { top: 0.3, bottom: 0 } });
     }
@@ -261,7 +262,8 @@ export default function TradingChart({ symbol = 'BTCUSDT', interval: initialInte
       overlaySeriesRefs.forEach((s) => { try { chart.removeSeries(s); } catch { /* */ } });
       overlaySeriesRefs.length = 0;
 
-      const addLine = (data: { time: number; value: number }[], color: string) => {
+      const addLine = (data: { time: UTCTimestamp; value: number }[], color: string) => {
+
         const s = chart.addSeries(LineSeries, { color, lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
         s.setData(data);
         overlaySeriesRefs.push(s);
@@ -305,7 +307,7 @@ export default function TradingChart({ symbol = 'BTCUSDT', interval: initialInte
     const loadData = async () => {
       setLoading(true);
       setError(null);
-      const klines: KlineData[] = await fetchBinanceKlines(symbol, interval, 500);
+      const klines = (await fetchBinanceKlines(symbol, interval, 500)) as unknown as KlineData[];
       if (klines.length > 0) {
         klinesRef.current = klines;
 
@@ -332,7 +334,7 @@ export default function TradingChart({ symbol = 'BTCUSDT', interval: initialInte
           const msg = JSON.parse(event.data);
           const k = msg.k;
           if (!k) return;
-          const candle: KlineData = { time: Math.floor(k.t / 1000), open: parseFloat(k.o), high: parseFloat(k.h), low: parseFloat(k.l), close: parseFloat(k.c), volume: parseFloat(k.v) };
+          const candle: KlineData = { time: Math.floor(k.t / 1000) as UTCTimestamp, open: parseFloat(k.o), high: parseFloat(k.h), low: parseFloat(k.l), close: parseFloat(k.c), volume: parseFloat(k.v) };
 
           const existing = klinesRef.current;
           if (existing.length > 0 && existing[existing.length - 1].time === candle.time) {

@@ -19,8 +19,13 @@ export default function CryptoNews({ maxItems = 10 }: CryptoNewsProps) {
       const res = await fetch('/api/news');
       if (res.ok) {
         const items: CryptoNewsItem[] = await res.json();
-        setNews(items.slice(0, maxItems));
+        // Guard: only accept items with valid absolute URLs
+        const valid = items.filter(
+          (item) => item.title && item.url && item.url.startsWith('http')
+        );
+        setNews(valid.slice(0, maxItems));
       }
+
     } catch {
       // silently fail — news section shows empty state
     } finally {

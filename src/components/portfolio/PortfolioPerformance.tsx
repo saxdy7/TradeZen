@@ -86,9 +86,8 @@ export default function PortfolioPerformance({ holdings }: PortfolioPerformanceP
               ${totalValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}
             </span>
             <span
-              className={`flex items-center gap-1 text-sm font-medium ${
-                isPositive ? 'text-[#00FF88]' : 'text-red-400'
-              }`}
+              className={`flex items-center gap-1 text-sm font-medium ${isPositive ? 'text-[#00FF88]' : 'text-red-400'
+                }`}
             >
               {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
               {isPositive ? '+' : ''}
@@ -102,11 +101,10 @@ export default function PortfolioPerformance({ holdings }: PortfolioPerformanceP
             <button
               key={r}
               onClick={() => setRange(r)}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                range === r
+              className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${range === r
                   ? 'bg-[#00FF88]/20 text-[#00FF88]'
                   : 'text-[#8888AA] hover:text-white'
-              }`}
+                }`}
             >
               {r}
             </button>
@@ -144,7 +142,8 @@ export default function PortfolioPerformance({ holdings }: PortfolioPerformanceP
               borderRadius: '8px',
               fontSize: '12px',
             }}
-            formatter={(value: number) => [`$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`, 'Value']}
+            formatter={(value: number | undefined) => [`$${(value ?? 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`, 'Value']}
+
           />
           <Area
             type="monotone"
